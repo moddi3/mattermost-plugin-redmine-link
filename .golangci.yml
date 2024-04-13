@@ -6,7 +6,7 @@ linters-settings:
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: github.com/mattermost/mattermost-starter-template
+    local-prefixes: github.com/moddi3/mattermost-plugin-redmine-link
   govet:
     check-shadowing: true
     enable-all: true

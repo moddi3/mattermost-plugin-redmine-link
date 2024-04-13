@@ -1,5 +1,11 @@
 {
     "eslint.workingDirectories": [
         "webapp"
-    ]
+    ],
+    "i18n-ally.localesPaths": [
+        "webapp/i18n"
+    ],
+    "yaml.schemas": {
+        "https://golangci-lint.run/jsonschema/golangci.jsonschema.json": "file:///Users/moddi3/projects/mattermost-plugin-redmine-link/.golangci.yml"
+    }
 }

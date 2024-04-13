@@ -1,10 +1,10 @@
 {
-    "id": "com.mattermost.plugin-starter-template",
-    "name": "Plugin Starter Template",
-    "description": "This plugin serves as a starting point for writing a Mattermost plugin.",
-    "homepage_url": "https://github.com/mattermost/mattermost-plugin-starter-template",
-    "support_url": "https://github.com/mattermost/mattermost-plugin-starter-template/issues",
-    "icon_path": "assets/starter-template-icon.svg",
+    "id": "com.moddi3.mattermost-plugin-redmine-link",
+    "name": "Transform Redmine Links",
+    "description": "Еhis plugin allows you to replace the redmine task link with a markdown link with the task name.",
+    "homepage_url": "https://github.com/moddi3/mattermost-plugin-redmine-link",
+    "support_url": "https://github.com/moddi3/mattermost-plugin-redmine-link/issues",
+    "icon_path": "assets/redmine-link-icon.svg",
     "min_server_version": "6.2.1",
     "server": {
         "executables": {
