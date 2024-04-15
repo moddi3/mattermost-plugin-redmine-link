@@ -166,11 +166,11 @@ func transformMessageLinks(message string, links []string) string {
 		if issueName == "" {
 			// If issue name is not found, use the original link
 			transformedParts = append(transformedParts, link)
+		} else {
+			// Create transformed link with issue name
+			transformedLink := fmt.Sprintf("[%s](%s)", issueName, link)
+			transformedParts = append(transformedParts, transformedLink)
 		}
-
-		// Create transformed link with issue name
-		transformedLink := fmt.Sprintf("[%s](%s)", issueName, link)
-		transformedParts = append(transformedParts, transformedLink)
 
 		// Update start index for the next iteration
 		startIndex = linkIndex + len(link)
