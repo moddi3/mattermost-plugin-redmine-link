@@ -3,6 +3,7 @@ module github.com/moddi3/mattermost-plugin-redmine-link
 go 1.21
 
 require (
+	github.com/dlclark/regexp2 v1.11.0
 	github.com/mattermost/mattermost/server/public v0.0.14
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.4
