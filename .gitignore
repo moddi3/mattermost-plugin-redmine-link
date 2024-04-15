@@ -11,3 +11,5 @@ server/manifest.go
 
 # VS Code
 .vscode
+
+plugin_local_test.go

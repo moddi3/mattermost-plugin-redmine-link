@@ -32,7 +32,7 @@ func TestMessageWillBePosted(t *testing.T) {
 	assert := assert.New(t)
 	plugin := Plugin{
 		configuration: &configuration{
-			RedmineAPIKey: "5225a5f42e854fca558358866d7d253631189cb8",
+			RedmineInstanceURL: "https://www.redmine.org",
 		},
 	}
 
@@ -47,24 +47,24 @@ func TestMessageWillBePosted(t *testing.T) {
 	// Test case 2: Single tracker link
 	postModel = &model.Post{
 		Id:      "post2",
-		Message: "This is a test message with a tracker link: https://tracker.sendpulse.com/issues/49033",
+		Message: "This is a test message with a tracker link: https://www.redmine.org/issues/40556",
 	}
 	expectedPost := &model.Post{
 		Id:      "post2",
-		Message: "This is a test message with a tracker link: [Дизайн для UA вебінара з Владиславом Комаревичем 04.04.24](https://tracker.sendpulse.com/issues/49033)",
+		Message: "This is a test message with a tracker link: [Focus on the textarea after clicking the Edit Journal button](https://www.redmine.org/issues/40556)",
 	}
 
 	newPost, _ = plugin.MessageWillBePosted(nil, postModel)
 	assert.Equal(expectedPost, newPost)
 
-	// Test case 3: Multiple tracker links
+	// // Test case 3: Multiple tracker links
 	postModel = &model.Post{
 		Id:      "post3",
-		Message: "This is a test message with multiple tracker links: https://tracker.sendpulse.com/issues/49033 and https://tracker.sendpulse.com/issues/49034",
+		Message: "This is a test message with multiple tracker links: https://www.redmine.org/issues/40556 and https://www.redmine.org/issues/40559",
 	}
 	expectedPost = &model.Post{
 		Id:      "post3",
-		Message: "This is a test message with multiple tracker links: [Дизайн для UA вебінара з Владиславом Комаревичем 04.04.24](https://tracker.sendpulse.com/issues/49033) and [Заменить png на svg на странице велком пейдж CRM](https://tracker.sendpulse.com/issues/49034)",
+		Message: "This is a test message with multiple tracker links: [Focus on the textarea after clicking the Edit Journal button](https://www.redmine.org/issues/40556) and [Fix incorrect icon image paths for Wiki help pages](https://www.redmine.org/issues/40559)",
 	}
 	newPost, _ = plugin.MessageWillBePosted(nil, postModel)
 	assert.Equal(expectedPost, newPost)
@@ -72,11 +72,11 @@ func TestMessageWillBePosted(t *testing.T) {
 	// Test case 4: Multiple tracker links and markdown links
 	postModel = &model.Post{
 		Id:      "post4",
-		Message: "This is a test message with multiple tracker links: [a link](https://tracker.sendpulse.com/issues/49033) and https://tracker.sendpulse.com/issues/49034 and https://tracker.sendpulse.com/issues/999999 and https://tracker.sendpulse.com/issues/49034",
+		Message: "This is a test message with multiple tracker links: [a link](https://www.redmine.org/issues/40556) and https://www.redmine.org/issues/40559 and https://www.redmine.org/issues/999999 and https://www.redmine.org/issues/40559",
 	}
 	expectedPost = &model.Post{
 		Id:      "post4",
-		Message: "This is a test message with multiple tracker links: [a link](https://tracker.sendpulse.com/issues/49033) and [Заменить png на svg на странице велком пейдж CRM](https://tracker.sendpulse.com/issues/49034) and https://tracker.sendpulse.com/issues/999999 and [Заменить png на svg на странице велком пейдж CRM](https://tracker.sendpulse.com/issues/49034)",
+		Message: "This is a test message with multiple tracker links: [a link](https://www.redmine.org/issues/40556) and [Fix incorrect icon image paths for Wiki help pages](https://www.redmine.org/issues/40559) and https://www.redmine.org/issues/999999 and [Fix incorrect icon image paths for Wiki help pages](https://www.redmine.org/issues/40559)",
 	}
 	newPost, _ = plugin.MessageWillBePosted(nil, postModel)
 	assert.Equal(expectedPost, newPost)
@@ -84,7 +84,7 @@ func TestMessageWillBePosted(t *testing.T) {
 	// Test case 5: Error retrieving issue name
 	postModel = &model.Post{
 		Id:      "post5",
-		Message: "This is a test message with a tracker link: https://tracker.sendpulse.com/issues/999999",
+		Message: "This is a test message with a tracker link: https://www.redmine.org/issues/999999",
 	}
 
 	newPost, _ = plugin.MessageWillBePosted(nil, postModel)

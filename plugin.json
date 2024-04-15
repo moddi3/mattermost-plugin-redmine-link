@@ -21,12 +21,22 @@
     "settings_schema": {
         "header": "",
         "footer": "",
-        "settings": [{
-            "key": "RedmineAPIKey",
-            "display_name": "Redmine API Key",
-            "type": "text",
-            "help_text": "API key for Redmine",
-            "default": ""
-        }]
+        "settings": [
+            {
+                "key": "RedmineAPIKey",
+                "display_name": "Redmine API Key",
+                "type": "text",
+                "help_text": "API key for Redmine",
+                "default": ""
+            },
+            {
+                "key": "RedmineInstanceURL",
+                "display_name": "Redmine Instance URL",
+                "type": "text",
+                "help_text": "URL of your Redmine instance",
+                "placeholder": "https://www.redmine.org/",
+                "default": ""
+            }
+        ]
     }
 }
