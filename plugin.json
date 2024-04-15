@@ -21,6 +21,12 @@
     "settings_schema": {
         "header": "",
         "footer": "",
-        "settings": []
+        "settings": [{
+            "key": "RedmineAPIKey",
+            "display_name": "Redmine API Key",
+            "type": "text",
+            "help_text": "API key for Redmine",
+            "default": ""
+        }]
     }
 }

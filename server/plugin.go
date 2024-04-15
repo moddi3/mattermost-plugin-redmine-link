@@ -78,14 +78,16 @@ type Issue struct {
 // 	return issueResponse.Issue.Subject, nil
 // }
 
-func getIssueNames(issueIDs []string) (map[string]string, error) {
+func (p *Plugin) getIssueNames(issueIDs []string) (map[string]string, error) {
+	configuration := p.getConfiguration()
+
 	idsParam := strings.Join(issueIDs, ",")
 	// https://tracker.sendpulse.com/issues.json?issue_id=1,2,3&status_id=*
 	url := fmt.Sprintf("%s%s?issue_id=%s&status_id=*", trackerAPIURL, "issues.json", idsParam)
 
 	// url := fmt.Sprintf("%s%s%s", trackerAPIURL, issueID, ".json")
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("X-Redmine-API-Key", "5225a5f42e854fca558358866d7d253631189cb8")
+	req.Header.Set("X-Redmine-API-Key", configuration.RedmineAPIKey)
 	resp, err := http.DefaultClient.Do(req) //nolint
 
 	if err != nil {
@@ -122,12 +124,11 @@ func extractTrackerLinks(input string) []string {
 	return matches
 }
 
-func getIssueIdFromLink(link string) string {
+func getIssueIDFromLink(link string) string {
 	return strings.TrimPrefix(link, trackerAPIURL+"issues/")
-
 }
 
-func transformMessageLinks(message string, links []string) string {
+func (p *Plugin) transformMessageLinks(message string, links []string) string {
 	if len(links) == 0 {
 		return message
 	}
@@ -138,12 +139,12 @@ func transformMessageLinks(message string, links []string) string {
 
 	// Collect issue IDs from links
 	for _, link := range links {
-		issueID := getIssueIdFromLink(link)
+		issueID := getIssueIDFromLink(link)
 		issueIDs = append(issueIDs, issueID)
 	}
 
 	// Get issue names for all issue IDs in a single API request
-	issuesSubjectMap, err := getIssueNames(issueIDs)
+	issuesSubjectMap, err := p.getIssueNames(issueIDs)
 
 	if err != nil {
 		// If there is an error fetching issue names, return the original message
@@ -160,7 +161,7 @@ func transformMessageLinks(message string, links []string) string {
 		linkIndex += startIndex
 		transformedParts = append(transformedParts, message[startIndex:linkIndex])
 
-		issueID := getIssueIdFromLink(link)
+		issueID := getIssueIDFromLink(link)
 		issueName := issuesSubjectMap[issueID]
 
 		if issueName == "" {
@@ -184,8 +185,11 @@ func transformMessageLinks(message string, links []string) string {
 
 func (p *Plugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
 	newPost := post.Clone()
+	configuration := p.getConfiguration()
 
-	newPost.Message = transformMessageLinks(newPost.Message, extractTrackerLinks(newPost.Message))
+	if configuration.RedmineAPIKey != "" {
+		newPost.Message = p.transformMessageLinks(newPost.Message, extractTrackerLinks(newPost.Message))
+	}
 	return newPost, ""
 }
 

@@ -30,7 +30,11 @@ func TestServeHTTP(t *testing.T) {
 
 func TestMessageWillBePosted(t *testing.T) {
 	assert := assert.New(t)
-	plugin := Plugin{}
+	plugin := Plugin{
+		configuration: &configuration{
+			RedmineAPIKey: "5225a5f42e854fca558358866d7d253631189cb8",
+		},
+	}
 
 	// Test case 1: No tracker links
 	postModel := &model.Post{
