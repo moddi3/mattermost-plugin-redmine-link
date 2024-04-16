@@ -78,16 +78,28 @@ type Issue struct {
 //		return issueResponse.Issue.Subject, nil
 //	}
 
+func (p *Plugin) getRedmineInstanceURLHostname() string {
+	configuration := p.getConfiguration()
+	if configuration.RedmineInstanceURL == "" {
+		return ""
+	}
+	u, err := url.Parse(configuration.RedmineInstanceURL)
+	if err != nil {
+		return ""
+	}
+	return u.Hostname()
+}
+
 func (p *Plugin) getRedmineInstanceURL() string {
 	configuration := p.getConfiguration()
 	if configuration.RedmineInstanceURL == "" {
 		return ""
 	}
-	url, err := url.Parse(configuration.RedmineInstanceURL)
+	u, err := url.Parse(configuration.RedmineInstanceURL)
 	if err != nil {
 		return ""
 	}
-	return fmt.Sprintf("%s://%s/", url.Scheme, url.Host)
+	return fmt.Sprintf("%s://%s/", u.Scheme, u.Host)
 }
 
 func (p *Plugin) getIssueNames(issueIDs []string) (map[string]string, error) {
@@ -128,21 +140,31 @@ func (p *Plugin) getIssueNames(issueIDs []string) (map[string]string, error) {
 
 func (p *Plugin) extractTrackerLinks(input string) []string {
 	var matches []string
-	escapedURL := strings.ReplaceAll(regexp.QuoteMeta(p.getRedmineInstanceURL()), "/", "\\/")
-	pattern := regexp2.MustCompile(`(?<!\]\()`+escapedURL+`issues\/\d+(?![^\[]*\])`, 0)
 
-	match, _ := pattern.FindStringMatch(input)
+	escapedURL := regexp.QuoteMeta(p.getRedmineInstanceURLHostname())
+	pattern := `(?<!\]\()(?:https?:\/\/|(?<!\S)|(?<!\W))` + escapedURL + `\/issues\/\d+(?:#note-\d+)?(?![^\[]*\])`
+	re := regexp2.MustCompile(pattern, 0)
+
+	match, _ := re.FindStringMatch(input)
 
 	for match != nil {
 		matches = append(matches, match.String())
-		match, _ = pattern.FindNextMatch(match)
+		match, _ = re.FindNextMatch(match)
 	}
-
 	return matches
 }
 
-func getIssueIDFromLink(link string, url string) string {
-	return strings.TrimPrefix(link, url+"issues/")
+func getIssueIDFromLink(link string) string {
+	u, err := url.Parse(link)
+	if err != nil {
+		return ""
+	}
+	if u.Scheme == "" {
+		u.Scheme = "https"
+		u, _ = url.Parse(u.String())
+
+	}
+	return strings.TrimPrefix(u.Path, "/issues/")
 }
 
 func (p *Plugin) transformMessageLinks(message string, links []string) string {
@@ -156,7 +178,8 @@ func (p *Plugin) transformMessageLinks(message string, links []string) string {
 
 	// Collect issue IDs from links
 	for _, link := range links {
-		issueID := getIssueIDFromLink(link, p.getRedmineInstanceURL())
+		issueID := getIssueIDFromLink(link)
+		fmt.Println(`issueID`, issueID)
 		issueIDs = append(issueIDs, issueID)
 	}
 

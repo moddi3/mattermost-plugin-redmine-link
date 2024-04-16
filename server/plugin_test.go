@@ -57,7 +57,7 @@ func TestMessageWillBePosted(t *testing.T) {
 	newPost, _ = plugin.MessageWillBePosted(nil, postModel)
 	assert.Equal(expectedPost, newPost)
 
-	// // Test case 3: Multiple tracker links
+	// Test case 3: Multiple tracker links
 	postModel = &model.Post{
 		Id:      "post3",
 		Message: "This is a test message with multiple tracker links: https://www.redmine.org/issues/40556 and https://www.redmine.org/issues/40559",
@@ -81,9 +81,22 @@ func TestMessageWillBePosted(t *testing.T) {
 	newPost, _ = plugin.MessageWillBePosted(nil, postModel)
 	assert.Equal(expectedPost, newPost)
 
-	// Test case 5: Error retrieving issue name
+	// Test case 5: Tracker links with http protocol and without protocol
 	postModel = &model.Post{
 		Id:      "post5",
+		Message: "This is a test message with a http tracker link: http://www.redmine.org/issues/40556 and without protocol www.redmine.org/issues/40556",
+	}
+	expectedPost = &model.Post{
+		Id:      "post5",
+		Message: "This is a test message with a http tracker link: [Focus on the textarea after clicking the Edit Journal button](http://www.redmine.org/issues/40556) and without protocol [Focus on the textarea after clicking the Edit Journal button](www.redmine.org/issues/40556)",
+	}
+
+	newPost, _ = plugin.MessageWillBePosted(nil, postModel)
+	assert.Equal(expectedPost, newPost)
+
+	// Test case 6: Error retrieving issue name
+	postModel = &model.Post{
+		Id:      "post6",
 		Message: "This is a test message with a tracker link: https://www.redmine.org/issues/999999",
 	}
 
