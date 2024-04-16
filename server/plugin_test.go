@@ -102,4 +102,18 @@ func TestMessageWillBePosted(t *testing.T) {
 
 	newPost, _ = plugin.MessageWillBePosted(nil, postModel)
 	assert.Equal(postModel, newPost)
+
+	// Test case 7: Tracker link with a note anchor
+	postModel = &model.Post{
+		Id:      "post7",
+		Message: "This is a test message with a tracker link: https://www.redmine.org/issues/40538#note-4",
+	}
+
+	expectedPost = &model.Post{
+		Id:      "post7",
+		Message: "This is a test message with a tracker link: [Hi, can you help me with a Version Extended?#note-4](https://www.redmine.org/issues/40538#note-4)",
+	}
+
+	newPost, _ = plugin.MessageWillBePosted(nil, postModel)
+	assert.Equal(expectedPost, newPost)
 }
