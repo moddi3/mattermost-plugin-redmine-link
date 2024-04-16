@@ -20,21 +20,20 @@
         "bundle_path": "webapp/dist/main.js"
     },
     "settings_schema": {
-        "header": "",
+        "header": "Converts links like ***https:&sol;&sol;www&#46;redmine&#46;org/issues/12345*** to markdown format — ***&lsqb;Issue Name&rsqb;(https:&sol;&sol;www&#46;redmine&#46;org/issues/12345)***",
         "footer": "",
         "settings": [
             {
                 "key": "RedmineAPIKey",
                 "display_name": "Redmine API Key",
                 "type": "text",
-                "help_text": "API key for Redmine",
+                "help_text": "only required for private Redmine instances",
                 "default": ""
             },
             {
                 "key": "RedmineInstanceURL",
                 "display_name": "Redmine Instance URL",
                 "type": "text",
-                "help_text": "URL of your Redmine instance",
                 "placeholder": "https://www.redmine.org/",
                 "default": ""
             }
