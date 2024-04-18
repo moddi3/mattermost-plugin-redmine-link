@@ -241,8 +241,10 @@ func TestMessageWillBePosted(t *testing.T) {
 
 	// Iterate over each test case and run it
 	for _, testCase := range testCases {
-		t.Run(testCase.Description, func(st *testing.T) {
-			runTestCase(st, plugin, testCase)
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			t.Parallel()
+			runTestCase(t, plugin, testCase)
 		})
 	}
 }
