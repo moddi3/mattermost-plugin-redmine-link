@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -28,92 +29,220 @@ func TestServeHTTP(t *testing.T) {
 	assert.Equal("Hello, world!", bodyString)
 }
 
+type TestCase struct {
+	Description     string
+	InputMessage    string
+	ExpectedMessage string
+}
+
+func runTestCase(t *testing.T, plugin *Plugin, testCase TestCase) {
+	newPost, _ := plugin.MessageWillBePosted(nil, &model.Post{Message: testCase.InputMessage})
+	assert.Equal(t, testCase.ExpectedMessage, newPost.Message, fmt.Sprintf("Failed test case: %s", testCase.Description))
+}
+
 func TestMessageWillBePosted(t *testing.T) {
-	assert := assert.New(t)
-	plugin := Plugin{
+	plugin := &Plugin{
 		configuration: &configuration{
 			RedmineInstanceURL: "https://www.redmine.org",
 		},
 	}
 
-	// Test case 1: No tracker links
-	postModel := &model.Post{
-		Id:      "post1",
-		Message: "This is a test message without any tracker links.",
+	// Define a data table of test cases
+	testCases := []TestCase{
+		{
+			Description:     "No tracker links",
+			InputMessage:    "This is a test message without any tracker links.",
+			ExpectedMessage: "This is a test message without any tracker links.",
+		},
+		{
+			Description:  "Single tracker link",
+			InputMessage: "This is a test message with a tracker link: https://www.redmine.org/issues/40556",
+			ExpectedMessage: fmt.Sprintf("This is a test message with a tracker link: %s", createTransformedLink(
+				"Focus on the textarea after clicking the Edit Journal button",
+				"https://www.redmine.org/issues/40556",
+				"",
+				map[string]string{
+					"Subject":   "Focus on the textarea after clicking the Edit Journal button",
+					"Status":    "New",
+					"Priority":  "Normal",
+					"UpdatedOn": "2024-04-17T06:21:23Z",
+					"Tracker":   "Feature",
+					"ID":        "40556",
+					"Author":    "Yasu Saku",
+				},
+			)),
+		},
+		{
+			Description:  "Multiple tracker links",
+			InputMessage: "This is a test message with multiple tracker links: https://www.redmine.org/issues/40556 and https://www.redmine.org/issues/40559",
+			ExpectedMessage: fmt.Sprintf("This is a test message with multiple tracker links: %s and %s",
+				createTransformedLink(
+					"Focus on the textarea after clicking the Edit Journal button",
+					"https://www.redmine.org/issues/40556",
+					"",
+					map[string]string{
+						"Subject":   "Focus on the textarea after clicking the Edit Journal button",
+						"Status":    "New",
+						"Priority":  "Normal",
+						"UpdatedOn": "2024-04-17T06:21:23Z",
+						"Tracker":   "Feature",
+						"ID":        "40556",
+						"Author":    "Yasu Saku",
+					},
+				),
+				createTransformedLink(
+					"Fix incorrect icon image paths for Wiki help pages",
+					"https://www.redmine.org/issues/40559",
+					"",
+					map[string]string{
+						"Subject":    "Fix incorrect icon image paths for Wiki help pages",
+						"Status":     "Closed",
+						"Priority":   "Normal",
+						"UpdatedOn":  "2024-04-16T19:26:17Z",
+						"AssignedTo": "Marius BĂLTEANU",
+						"Tracker":    "Patch",
+						"ID":         "40559",
+						"Author":     "Katsuya HIDAKA",
+					},
+				),
+			),
+		},
+		{
+			Description:  "Multiple tracker links with markdown links",
+			InputMessage: "This is a test message with multiple tracker links: [a link](https://www.redmine.org/issues/40556) and https://www.redmine.org/issues/40559 and https://www.redmine.org/issues/999999 and https://www.redmine.org/issues/40559",
+			ExpectedMessage: fmt.Sprintf("This is a test message with multiple tracker links: [a link](https://www.redmine.org/issues/40556) and %s and %s and %s",
+				createTransformedLink(
+					"Fix incorrect icon image paths for Wiki help pages",
+					"https://www.redmine.org/issues/40559",
+					"",
+					map[string]string{
+						"Subject":    "Fix incorrect icon image paths for Wiki help pages",
+						"Status":     "Closed",
+						"Priority":   "Normal",
+						"UpdatedOn":  "2024-04-16T19:26:17Z",
+						"AssignedTo": "Marius BĂLTEANU",
+						"Tracker":    "Patch",
+						"ID":         "40559",
+						"Author":     "Katsuya HIDAKA",
+					},
+				),
+				"https://www.redmine.org/issues/999999",
+				createTransformedLink(
+					"Fix incorrect icon image paths for Wiki help pages",
+					"https://www.redmine.org/issues/40559",
+					"",
+					map[string]string{
+						"Subject":    "Fix incorrect icon image paths for Wiki help pages",
+						"Status":     "Closed",
+						"Priority":   "Normal",
+						"UpdatedOn":  "2024-04-16T19:26:17Z",
+						"AssignedTo": "Marius BĂLTEANU",
+						"Tracker":    "Patch",
+						"ID":         "40559",
+						"Author":     "Katsuya HIDAKA",
+					},
+				),
+			),
+		},
+		{
+			Description:  "Tracker links with http protocol and without protocol",
+			InputMessage: "This is a test message with an http tracker link: http://www.redmine.org/issues/40556 and without protocol www.redmine.org/issues/40556",
+			ExpectedMessage: fmt.Sprintf("This is a test message with an http tracker link: %s and without protocol %s",
+				createTransformedLink(
+					"Focus on the textarea after clicking the Edit Journal button",
+					"http://www.redmine.org/issues/40556",
+					"",
+					map[string]string{
+						"Subject":   "Focus on the textarea after clicking the Edit Journal button",
+						"Status":    "New",
+						"Priority":  "Normal",
+						"UpdatedOn": "2024-04-17T06:21:23Z",
+						"Tracker":   "Feature",
+						"ID":        "40556",
+						"Author":    "Yasu Saku",
+					},
+				),
+				createTransformedLink(
+					"Focus on the textarea after clicking the Edit Journal button",
+					"www.redmine.org/issues/40556",
+					"",
+					map[string]string{
+						"Subject":   "Focus on the textarea after clicking the Edit Journal button",
+						"Status":    "New",
+						"Priority":  "Normal",
+						"UpdatedOn": "2024-04-17T06:21:23Z",
+						"Tracker":   "Feature",
+						"ID":        "40556",
+						"Author":    "Yasu Saku",
+					},
+				),
+			),
+		},
+		{
+			Description:     "Error retrieving issue name",
+			InputMessage:    "This is a test message with a tracker link: https://www.redmine.org/issues/999999",
+			ExpectedMessage: "This is a test message with a tracker link: https://www.redmine.org/issues/999999",
+		},
+		{
+			Description:  "Tracker link with a note anchor",
+			InputMessage: "This is a test message with a tracker link: https://www.redmine.org/issues/40538#note-4",
+			ExpectedMessage: fmt.Sprintf("This is a test message with a tracker link: %s", createTransformedLink(
+				"Hi, can you help me with a Version Extended?",
+				"https://www.redmine.org/issues/40538#note-4",
+				"#note-4",
+				map[string]string{
+					"Subject":   "Hi, can you help me with a Version Extended?",
+					"Status":    "Reopened",
+					"Priority":  "Normal",
+					"UpdatedOn": "2024-04-09T10:42:41Z",
+					"Tracker":   "Patch",
+					"ID":        "40538",
+					"Author":    "Enzo Pellecchia",
+				},
+			)),
+		},
+		{
+			Description:  "Tracker link with query params",
+			InputMessage: "This is a test message with a tracker link: https://www.redmine.org/issues/40538?issue_count=453&issue_position=2&next_issue_id=40506",
+			ExpectedMessage: fmt.Sprintf("This is a test message with a tracker link: %s", createTransformedLink(
+				"Hi, can you help me with a Version Extended?",
+				"https://www.redmine.org/issues/40538?issue_count=453&issue_position=2&next_issue_id=40506",
+				"",
+				map[string]string{
+					"Subject":   "Hi, can you help me with a Version Extended?",
+					"Status":    "Reopened",
+					"Priority":  "Normal",
+					"UpdatedOn": "2024-04-09T10:42:41Z",
+					"Tracker":   "Patch",
+					"ID":        "40538",
+					"Author":    "Enzo Pellecchia",
+				},
+			)),
+		},
+		{
+			Description:  "Tracker link with query params and note anchor",
+			InputMessage: "This is a test message with a tracker link: https://www.redmine.org/issues/40538?issue_count=453&issue_position=2&next_issue_id=40506#note-4",
+			ExpectedMessage: fmt.Sprintf("This is a test message with a tracker link: %s", createTransformedLink(
+				"Hi, can you help me with a Version Extended?",
+				"https://www.redmine.org/issues/40538?issue_count=453&issue_position=2&next_issue_id=40506#note-4",
+				"#note-4",
+				map[string]string{
+					"Subject":   "Hi, can you help me with a Version Extended?",
+					"Status":    "Reopened",
+					"Priority":  "Normal",
+					"UpdatedOn": "2024-04-09T10:42:41Z",
+					"Tracker":   "Patch",
+					"ID":        "40538",
+					"Author":    "Enzo Pellecchia",
+				},
+			)),
+		},
 	}
-	newPost, _ := plugin.MessageWillBePosted(nil, postModel)
-	assert.Equal(postModel, newPost)
 
-	// Test case 2: Single tracker link
-	postModel = &model.Post{
-		Id:      "post2",
-		Message: "This is a test message with a tracker link: https://www.redmine.org/issues/40556",
+	// Iterate over each test case and run it
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(st *testing.T) {
+			runTestCase(st, plugin, testCase)
+		})
 	}
-	expectedPost := &model.Post{
-		Id:      "post2",
-		Message: "This is a test message with a tracker link: [Focus on the textarea after clicking the Edit Journal button](https://www.redmine.org/issues/40556)",
-	}
-
-	newPost, _ = plugin.MessageWillBePosted(nil, postModel)
-	assert.Equal(expectedPost, newPost)
-
-	// Test case 3: Multiple tracker links
-	postModel = &model.Post{
-		Id:      "post3",
-		Message: "This is a test message with multiple tracker links: https://www.redmine.org/issues/40556 and https://www.redmine.org/issues/40559",
-	}
-	expectedPost = &model.Post{
-		Id:      "post3",
-		Message: "This is a test message with multiple tracker links: [Focus on the textarea after clicking the Edit Journal button](https://www.redmine.org/issues/40556) and [Fix incorrect icon image paths for Wiki help pages](https://www.redmine.org/issues/40559)",
-	}
-	newPost, _ = plugin.MessageWillBePosted(nil, postModel)
-	assert.Equal(expectedPost, newPost)
-
-	// Test case 4: Multiple tracker links and markdown links
-	postModel = &model.Post{
-		Id:      "post4",
-		Message: "This is a test message with multiple tracker links: [a link](https://www.redmine.org/issues/40556) and https://www.redmine.org/issues/40559 and https://www.redmine.org/issues/999999 and https://www.redmine.org/issues/40559",
-	}
-	expectedPost = &model.Post{
-		Id:      "post4",
-		Message: "This is a test message with multiple tracker links: [a link](https://www.redmine.org/issues/40556) and [Fix incorrect icon image paths for Wiki help pages](https://www.redmine.org/issues/40559) and https://www.redmine.org/issues/999999 and [Fix incorrect icon image paths for Wiki help pages](https://www.redmine.org/issues/40559)",
-	}
-	newPost, _ = plugin.MessageWillBePosted(nil, postModel)
-	assert.Equal(expectedPost, newPost)
-
-	// Test case 5: Tracker links with http protocol and without protocol
-	postModel = &model.Post{
-		Id:      "post5",
-		Message: "This is a test message with a http tracker link: http://www.redmine.org/issues/40556 and without protocol www.redmine.org/issues/40556",
-	}
-	expectedPost = &model.Post{
-		Id:      "post5",
-		Message: "This is a test message with a http tracker link: [Focus on the textarea after clicking the Edit Journal button](http://www.redmine.org/issues/40556) and without protocol [Focus on the textarea after clicking the Edit Journal button](www.redmine.org/issues/40556)",
-	}
-
-	newPost, _ = plugin.MessageWillBePosted(nil, postModel)
-	assert.Equal(expectedPost, newPost)
-
-	// Test case 6: Error retrieving issue name
-	postModel = &model.Post{
-		Id:      "post6",
-		Message: "This is a test message with a tracker link: https://www.redmine.org/issues/999999",
-	}
-
-	newPost, _ = plugin.MessageWillBePosted(nil, postModel)
-	assert.Equal(postModel, newPost)
-
-	// Test case 7: Tracker link with a note anchor
-	postModel = &model.Post{
-		Id:      "post7",
-		Message: "This is a test message with a tracker link: https://www.redmine.org/issues/40538#note-4",
-	}
-
-	expectedPost = &model.Post{
-		Id:      "post7",
-		Message: "This is a test message with a tracker link: [Hi, can you help me with a Version Extended?#note-4](https://www.redmine.org/issues/40538#note-4)",
-	}
-
-	newPost, _ = plugin.MessageWillBePosted(nil, postModel)
-	assert.Equal(expectedPost, newPost)
 }

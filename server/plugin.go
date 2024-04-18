@@ -49,7 +49,7 @@ func parseLink(link string) (map[string]string, error) {
 func extractTrackerLinks(input string, redmineHost string) []string {
 	var matches []string
 
-	pattern := `(?<!\]\()(?:https?:\/\/|(?<!\S)|(?<!\W))` + regexp.QuoteMeta(redmineHost) + `\/issues\/\d+(?:#note-\d+)?(?![^\[]*\])`
+	pattern := `(?<!\]\()(?:https?:\/\/|(?<!\S)|(?<!\W))` + regexp.QuoteMeta(redmineHost) + `\/issues\/\d+(?:\?[\w-]+(?:=[\w-]*)?(?:&[\w-]+(?:=[\w-]*)?)*)?(?:#note-\d+)?(?![^\[]*\])`
 	re := regexp2.MustCompile(pattern, 0)
 
 	match, _ := re.FindStringMatch(input)
@@ -63,19 +63,43 @@ func extractTrackerLinks(input string, redmineHost string) []string {
 
 // i need to get necessary data from issues response and transform it to to map
 // issueID -> { issueName, issueStatus, issueNoteAnchor }
-func processIssuesResponse(issuesResponse IssuesResponse) map[string]map[string]string {
+func processIssuesResponse(issuesResponse *IssuesResponse) map[string]map[string]string {
 	issuesMap := make(map[string]map[string]string)
 
 	for _, issue := range issuesResponse.Issues {
 		issueID := fmt.Sprintf("%d", issue.ID)
 		issuesMap[issueID] = map[string]string{
+			"ID":         issueID,
 			"Subject":    issue.Subject,
 			"Status":     issue.Status.Name,
 			"Tracker":    issue.Tracker.Name,
 			"AssignedTo": issue.AssignedTo.Name,
+			"Priority":   issue.Priority.Name,
+			"UpdatedOn":  issue.UpdatedOn,
+			"Author":     issue.Author.Name,
 		}
 	}
 	return issuesMap
+}
+
+func formatAdditionalData(issueData map[string]string) string {
+	assignee := "Assignee: Unassigned"
+	if issueData["AssignedTo"] != "" {
+		assignee = "Assignee: " + issueData["AssignedTo"]
+	}
+	status := "Status: " + issueData["Status"]
+	prioity := "Priority: " + issueData["Priority"]
+	updatedAt := "Updated at: " + issueData["UpdatedOn"]
+	author := "Author: " + issueData["Author"]
+
+	return strings.Join([]string{assignee, prioity, status, author, updatedAt}, "&#013;")
+}
+
+func createTransformedLink(subject, url, anchor string, issueData map[string]string) string {
+	additionalData := formatAdditionalData(issueData)
+	trackerAndID := fmt.Sprintf("%s#%s", issueData["Tracker"], issueData["ID"])
+
+	return fmt.Sprintf("[%s: %s%s](%s %q)", trackerAndID, subject, anchor, url, additionalData)
 }
 
 func (p *Plugin) getRedmineInstanceURL() (string, string) {
@@ -112,7 +136,7 @@ func (p *Plugin) getIssuesData(issueIDs []string) (map[string]map[string]string,
 
 	defer resp.Body.Close()
 
-	var issuesResponse IssuesResponse
+	var issuesResponse *IssuesResponse
 	err = json.NewDecoder(resp.Body).Decode(&issuesResponse)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode JSON response: %w", err)
@@ -126,7 +150,7 @@ func (p *Plugin) transformMessageLinks(message string, links []string) string {
 		return message
 	}
 
-	var transformedParts []string
+	var builder strings.Builder
 	startIndex := 0
 	issuesIDs := make([]string, 0, len(links))
 	issuesHashes := make([]string, 0, len(links))
@@ -156,21 +180,22 @@ func (p *Plugin) transformMessageLinks(message string, links []string) string {
 		}
 
 		linkIndex += startIndex
-		transformedParts = append(transformedParts, message[startIndex:linkIndex])
+		builder.WriteString(message[startIndex:linkIndex])
 
 		issueData := issuesData[issuesIDs[i]]
 
 		if issueData["Subject"] == "" {
 			// If issue subject is not found, use the original link
-			transformedParts = append(transformedParts, link)
+			builder.WriteString(link)
 		} else {
-			// Create transformed link with issue subject
 			hash := ""
 			if issuesHashes[i] != "" {
 				hash = "#" + issuesHashes[i]
 			}
-			transformedLink := fmt.Sprintf("[%s%s](%s)", issueData["Subject"], hash, link)
-			transformedParts = append(transformedParts, transformedLink)
+
+			// Create transformed link with issue subject
+			transformedLink := createTransformedLink(issueData["Subject"], link, hash, issueData)
+			builder.WriteString(transformedLink)
 		}
 
 		// Update start index for the next iteration
@@ -178,9 +203,9 @@ func (p *Plugin) transformMessageLinks(message string, links []string) string {
 	}
 
 	// Append remaining part of the message
-	transformedParts = append(transformedParts, message[startIndex:])
+	builder.WriteString(message[startIndex:])
 
-	return strings.Join(transformedParts, "")
+	return builder.String()
 }
 
 func (p *Plugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
