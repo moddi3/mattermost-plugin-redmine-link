@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"sync"
 
@@ -89,8 +90,11 @@ func formatAdditionalData(issueData map[string]string) string {
 	}
 	status := "Status: " + issueData["Status"]
 	prioity := "Priority: " + issueData["Priority"]
-	updatedAt := "Updated at: " + issueData["UpdatedOn"]
 	author := "Author: " + issueData["Author"]
+
+	t, _ := time.Parse(time.RFC3339, issueData["UpdatedOn"])
+	loc, _ := time.LoadLocation("Europe/Kyiv")
+	updatedAt := "Last update: " + t.In(loc).Format(time.RFC1123)
 
 	return strings.Join([]string{assignee, prioity, status, author, updatedAt}, "&#013;")
 }
