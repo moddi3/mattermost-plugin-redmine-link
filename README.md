@@ -1,149 +1,59 @@
-# Plugin Starter Template [![CircleCI branch](https://img.shields.io/circleci/project/github/mattermost/mattermost-plugin-starter-template/master.svg)](https://circleci.com/gh/mattermost/mattermost-plugin-starter-template)
+# Mattermost Plugin Redmine Link · ![ci workflow](https://github.com/moddi3/mattermost-plugin-redmine-link/actions/workflows/ci.yml/badge.svg) [![Mutable.ai Auto Wiki](https://img.shields.io/badge/Auto_Wiki-Mutable.ai-blue)](https://wiki.mutable.ai/moddi3/mattermost-plugin-redmine-link)
 
-This plugin serves as a starting point for writing a Mattermost plugin. Feel free to base your own plugin off this repository.
+This plugin enhances the Mattermost experience by transforming Redmine links in messages into rich content. It automatically extracts information from Redmine issues and presents them in an easy-to-read format.
 
-To learn more about plugins, see [our plugin documentation](https://developers.mattermost.com/extend/plugins/).
+Automatically transforms Redmine issue links in Mattermost messages into a readable format, providing additional information such as issue status, priority, assignee, and other relevant details directly in the chat.
 
-This template requires node v16 and npm v8. You can download and install nvm to manage your node versions by following the instructions [here](https://github.com/nvm-sh/nvm). Once you've setup the project simply run `nvm i` within the root folder to use the suggested version of node.
+## Usage
 
-## Getting Started
-Use GitHub's template feature to make a copy of this repository by clicking the "Use this template" button.
+Include Redmine issue links in your Mattermost messages to see the plugin in action. The plugin needs to be configured before use. 
 
-Alternatively shallow clone the repository matching your plugin name:
+### Example
+
+Here's an example of how the plugin transforms Redmine links:
+
+- **Original message**: "Check out the issue here: https://www.redmine.org/issues/3451"
+- **Transformed message**: "Check out the issue here: [Defect#3451: Issue Creation Via Email not Working ](https://www.redmine.org/issues/3451 "Assignee: Unassigned&#013;Priority: Normal&#013;Status: Closed&#013;Author: Carlo Camerino&NewLine;Last update: Fri, 16 Jul 2021 15:42:40 EEST")"
+
+In the transformed message, you can view the issue subject and tracker. Additional details such as status, priority, author, and last update date are available when hovering over the link.
+#### Example of a transfrmed message in Markdown format: 
 ```
-git clone --depth 1 https://github.com/mattermost/mattermost-plugin-starter-template com.example.my-plugin
+[Defect#3451: Issue Creation Via Email not Working ](https://www.redmine.org/issues/3451 "Assignee: Unassigned&#013;Priority: Normal&#013;Status: Closed&#013;Author: Carlo Camerino&#013;Last update: Fri, 16 Jul 2021 15:42:40 EEST")
 ```
+Carriage Return `&#013;` is used to insert a newline character in the link's title attribute. This allows the additional information (Assignee, Priority, Status, Author, Last update) to be displayed on separate lines when the user hovers over the link or views it in a Markdown renderer that supports tooltips. 
 
-Note that this project uses [Go modules](https://github.com/golang/go/wiki/Modules). Be sure to locate the project outside of `$GOPATH`.
+## Installation
 
-Edit the following files:
-1. `plugin.json` with your `id`, `name`, and `description`:
-```json
-{
-    "id": "com.example.my-plugin",
-    "name": "My Plugin",
-    "description": "A plugin to enhance Mattermost."
-}
-```
+While you have the option to build the plugin yourself, it is much easier to download the already built plugin from the [releases page](https://github.com/moddi3/mattermost-plugin-redmine-link/releases) of the GitHub repository. Once downloaded, follow the Mattermost documentation on [plugin installation](https://developers.mattermost.com/integrate/plugins/components/server/hello-world/#install-the-plugin) to install the plugin in your Mattermost server.
 
-2. `go.mod` with your Go module path, following the `<hosting-site>/<repository>/<module>` convention:
-```
-module github.com/example/my-plugin
-```
+### Building Package
 
-3. `.golangci.yml` with your Go module path:
-```yml
-linters-settings:
-  # [...]
-  goimports:
-    local-prefixes: github.com/example/my-plugin
-```
+1. Clone the repository: `git clone https://github.com/moddi3/mattermost-plugin-redmine-link`
+2. Build the plugin: `make build`
+3. Follow the Mattermost documentation on [plugin installation](https://developers.mattermost.com/integrate/plugins/components/server/hello-world/#install-the-plugin) to install the plugin in your Mattermost server.
 
-Build your plugin:
-```
-make
-```
+## Configuration
 
-This will produce a single plugin file (with support for multiple architectures) for upload to your Mattermost server:
+After installation, configure the plugin in the Mattermost System Console:
 
-```
-dist/com.example.my-plugin.tar.gz
-```
+- **Redmine Instance URL**: Specify the URL of your Redmine instance.
+- **Redmine API Key (optional)**: Add your Redmine API key to allow the plugin to fetch issue data (only if you are using private redmine instance).
 
-## Development
+## Documentation
 
-To avoid having to manually install your plugin, build and deploy your plugin using one of the following options. In order for the below options to work, you must first enable plugin uploads via your config.json or API and restart Mattermost.
+For more detailed documentation and usage instructions, visit the [wiki page](https://wiki.mutable.ai/moddi3/mattermost-plugin-redmine-link).
 
-```json
-    "PluginSettings" : {
-        ...
-        "EnableUploads" : true
-    }
-```
+## Contributing
 
-### Deploying with Local Mode
+Contributions are welcome! Please see the [CONTRIBUTING](CONTRIBUTING.md) file for guidelines.
 
-If your Mattermost server is running locally, you can enable [local mode](https://docs.mattermost.com/administration/mmctl-cli-tool.html#local-mode) to streamline deploying your plugin. Edit your server configuration as follows:
+## License
 
-```json
-{
-    "ServiceSettings": {
-        ...
-        "EnableLocalMode": true,
-        "LocalModeSocketLocation": "/var/tmp/mattermost_local.socket"
-    },
-}
-```
+This plugin is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
 
-and then deploy your plugin:
-```
-make deploy
-```
+## Mattermost Starter Plugin Info
+For information on getting started with Mattermost plugins, refer to the [PLUGIN.md](PLUGIN.md) file in the root directory of this repository.
 
-You may also customize the Unix socket path:
-```bash
-export MM_LOCALSOCKETPATH=/var/tmp/alternate_local.socket
-make deploy
-```
+## Support
 
-If developing a plugin with a webapp, watch for changes and deploy those automatically:
-```bash
-export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
-export MM_ADMIN_TOKEN=j44acwd8obn78cdcx7koid4jkr
-make watch
-```
-
-### Deploying with credentials
-
-Alternatively, you can authenticate with the server's API with credentials:
-```bash
-export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
-export MM_ADMIN_USERNAME=admin
-export MM_ADMIN_PASSWORD=password
-make deploy
-```
-
-or with a [personal access token](https://docs.mattermost.com/developer/personal-access-tokens.html):
-```bash
-export MM_SERVICESETTINGS_SITEURL=http://localhost:8065
-export MM_ADMIN_TOKEN=j44acwd8obn78cdcx7koid4jkr
-make deploy
-```
-
-### Releasing new versions
-
-The version of a plugin is determined at compile time, automatically populating a `version` field in the [plugin manifest](plugin.json):
-* If the current commit matches a tag, the version will match after stripping any leading `v`, e.g. `1.3.1`.
-* Otherwise, the version will combine the nearest tag with `git rev-parse --short HEAD`, e.g. `1.3.1+d06e53e1`.
-* If there is no version tag, an empty version will be combined with the short hash, e.g. `0.0.0+76081421`.
-
-To disable this behaviour, manually populate and maintain the `version` field.
-
-## Q&A
-
-### How do I make a server-only or web app-only plugin?
-
-Simply delete the `server` or `webapp` folders and remove the corresponding sections from `plugin.json`. The build scripts will skip the missing portions automatically.
-
-### How do I include assets in the plugin bundle?
-
-Place them into the `assets` directory. To use an asset at runtime, build the path to your asset and open as a regular file:
-
-```go
-bundlePath, err := p.API.GetBundlePath()
-if err != nil {
-    return errors.Wrap(err, "failed to get bundle path")
-}
-
-profileImage, err := ioutil.ReadFile(filepath.Join(bundlePath, "assets", "profile_image.png"))
-if err != nil {
-    return errors.Wrap(err, "failed to read profile image")
-}
-
-if appErr := p.API.SetProfileImage(userID, profileImage); appErr != nil {
-    return errors.Wrap(err, "failed to set profile image")
-}
-```
-
-### How do I build the plugin with unminified JavaScript?
-Setting the `MM_DEBUG` environment variable will invoke the debug builds. The simplist way to do this is to simply include this variable in your calls to `make` (e.g. `make dist MM_DEBUG=1`).
+If you encounter any issues or have any questions, please raise them in the [GitHub repository](https://github.com/moddi3/mattermost-plugin-redmine-link) issues section.
