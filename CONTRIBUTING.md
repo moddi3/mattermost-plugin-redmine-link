@@ -59,6 +59,10 @@ make deploy
 1. **Create an issue**: Create an issue on the GitHub repository to report any bugs or issues you encounter.
 2. **Provide details**: Provide as much detail as possible about the issue, including any error messages or steps to reproduce the issue.
 
+## Code of Conduct
+
+By participating in this project, you agree to abide by the [CODE OF CONDUCT](CODE_OF_CONDUCT.md). Please be respectful and considerate of others when interacting with the community.
+
 ## License
 
 This plugin is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
