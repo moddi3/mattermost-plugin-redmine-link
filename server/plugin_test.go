@@ -241,20 +241,18 @@ func TestMessagehooks(t *testing.T) {
 		hook := hook
 		testCases := testCases
 		t.Run(hook, func(t *testing.T) {
-			t.Parallel()
 			runTestCases(t, plugin, testCases, hook)
 		})
 	}
 }
 
 func runTestCases(t *testing.T, plugin *Plugin, testCases []TestCase, hook string) {
-	var newPost *model.Post
-
 	for _, testCase := range testCases {
 		testCase := testCase
 
 		t.Run(testCase.Description, func(t *testing.T) {
 			t.Parallel()
+			var newPost *model.Post
 
 			if hook == "MessageWillBePosted" {
 				newPost, _ = plugin.MessageWillBePosted(nil, &model.Post{Message: testCase.InputMessage})
