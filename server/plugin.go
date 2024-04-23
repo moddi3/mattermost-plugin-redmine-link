@@ -62,8 +62,6 @@ func extractTrackerLinks(input string, redmineHost string) []string {
 	return matches
 }
 
-// i need to get necessary data from issues response and transform it to to map
-// issueID -> { issueName, issueStatus, issueNoteAnchor }
 func processIssuesResponse(issuesResponse *IssuesResponse) map[string]map[string]string {
 	issuesMap := make(map[string]map[string]string)
 
@@ -149,6 +147,7 @@ func (p *Plugin) getIssuesData(issueIDs []string) (map[string]map[string]string,
 	return processIssuesResponse(issuesResponse), nil
 }
 
+// todo: rewritethis to markdown.Inspect?
 func (p *Plugin) transformMessageLinks(message string, links []string) string {
 	if len(links) == 0 {
 		return message
@@ -222,9 +221,8 @@ func (p *Plugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mode
 	return newPost, ""
 }
 
-// ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
-func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello, world!")
+func (p *Plugin) MessageWillBeUpdated(c *plugin.Context, newPost, oldPost *model.Post) (*model.Post, string) {
+	return p.MessageWillBePosted(c, newPost)
 }
 
 // See https://developers.mattermost.com/extend/plugins/server/reference/
