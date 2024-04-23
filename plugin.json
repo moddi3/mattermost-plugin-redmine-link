@@ -1,7 +1,7 @@
 {
     "id": "com.moddi3.mattermost-plugin-redmine-link",
-    "name": "Transform Redmine Links",
-    "description": "Еhis plugin allows you to replace the redmine task link with a markdown link with the task name.",
+    "name": "Redmine Link Transform for Mattermost",
+    "description": "This plugin allows you to transform the Redmine issue link with a markdown link with the issue name.",
     "homepage_url": "https://github.com/moddi3/mattermost-plugin-redmine-link",
     "support_url": "https://github.com/moddi3/mattermost-plugin-redmine-link/issues",
     "icon_path": "assets/redmine-link-icon.svg",

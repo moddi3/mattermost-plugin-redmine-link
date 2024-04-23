@@ -1,6 +1,6 @@
-# Contributing to Mattermost Plugin Redmine Link
+# Contributing to Redmine Link Transform for Mattermost
 
-Thank you for your interest in contributing to the Mattermost Plugin Redmine Link! We welcome contributions from the community and appreciate any help in making the plugin better.
+Thank you for your interest in contributing to the Redmine Link Transform for Mattermost! We welcome contributions from the community and appreciate any help in making the plugin better.
 
 ## Getting Started
 
