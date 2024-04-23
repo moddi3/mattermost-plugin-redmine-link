@@ -1,4 +1,5 @@
-# Redmine Link Transform for Mattermost · ![ci workflow](https://github.com/moddi3/mattermost-plugin-redmine-link/actions/workflows/ci.yml/badge.svg) [![Mutable.ai Auto Wiki](https://img.shields.io/badge/Auto_Wiki-Mutable.ai-blue)](https://wiki.mutable.ai/moddi3/mattermost-plugin-redmine-link)
+![ci workflow](https://github.com/moddi3/mattermost-plugin-redmine-link/actions/workflows/ci.yml/badge.svg) [![Mutable.ai Auto Wiki](https://img.shields.io/badge/Auto_Wiki-Mutable.ai-blue)](https://wiki.mutable.ai/moddi3/mattermost-plugin-redmine-link)
+# Redmine Link Transform for Mattermost
 
 This plugin enhances the Mattermost experience by transforming Redmine links in messages into rich content. It automatically extracts information from Redmine issues and presents them in an easy-to-read format.
 
